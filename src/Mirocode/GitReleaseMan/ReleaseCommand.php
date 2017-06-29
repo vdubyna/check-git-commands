@@ -39,27 +39,44 @@ class ReleaseCommand extends Command
         $originRepoNamespace = 'origin';
         $releaseBranch = 'master';
 
-
         // Warn, the action will reset current repository to release branch if not - stop the process
-        $helper = $this->getHelper('question');
         $question = new ConfirmationQuestion(
             'Confirm to reset the repository to release branch and clean it? (y/n): ', false);
 
-        if (!$helper->ask($input, $output, $question)) {
+        if (!$this->getHelper('question')->ask($input, $output, $question)) {
             $output->write('Stop the release process and exit.' . PHP_EOL);
             return;
         }
 
-        echo 'continue';
+        // get repository info
+        try {
+            $this->_executeShellCommand('git fetch --progress origin', $output);
+            $this->_executeShellCommand('git log -n1 --pretty=format:%H%x20%s', $output);
+            $this->_executeShellCommand('git config remote.origin.url', $output);
+        } catch (ProcessFailedException $e) {
+            $output->write($e->getMessage());
+            $output->write('Stop the release process and exit.' . PHP_EOL);
+            return;
+        }
 
-        $this->_executeShellCommand('git fetch --progress origin', $output);
-        $this->_executeShellCommand('git log -n1 --pretty=format:%H%x20%s', $output);
-        $this->_executeShellCommand('git config remote.origin.url', $output);
+        // ask to continue and prepare for release
+        $question = new ConfirmationQuestion('Do you want to continue? (y/n): ', false);
+        if (!$this->getHelper('question')->ask($input, $output, $question)) {
+            $output->write('Stop the release process and exit.' . PHP_EOL);
+            return;
+        }
+
+        try {
+            $this->_executeShellCommand('git fetch origin', $output);
+            $this->_executeShellCommand('git reset --hard origin/master', $output);
+            $this->_executeShellCommand('git clean -fdx', $output);
+        } catch (ProcessFailedException $e) {
+            $output->write($e->getMessage());
+            $output->write('Stop the release process and exit.' . PHP_EOL);
+            return;
+        }
 
 
-        $this->_executeShellCommand('git fetch origin', $output);
-        $this->_executeShellCommand('git reset --hard origin/master', $output);
-        $this->_executeShellCommand('git clean -fdx', $output);
 
 
         // Generate release branch
@@ -83,11 +100,7 @@ class ReleaseCommand extends Command
     protected function _executeShellCommand($cmd, OutputInterface $output)
     {
         $process = new Process($cmd);
-        try {
-            $process->mustRun();
-            $output->write($process->getOutput());
-        } catch (ProcessFailedException $e) {
-            $output->write($e->getMessage());
-        }
+        $process->mustRun();
+        $output->write($process->getOutput());
     }
 }
