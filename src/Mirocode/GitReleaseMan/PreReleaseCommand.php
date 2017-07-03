@@ -8,19 +8,13 @@
 
 namespace Mirocode\GitReleaseMan;
 
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Question\ConfirmationQuestion;
-use Symfony\Component\Process\Exception\ProcessFailedException;
-use Symfony\Component\Process\Process;
-use Composer\Semver\Semver;
 use Mirocode\GitReleaseMan\Version;
+use Mirocode\GitReleaseMan\AbstractCommand;
 
-class PreReleaseCommand extends Command
+class PreReleaseCommand extends AbstractCommand
 {
-
-
     protected function configure()
     {
         $this
@@ -40,6 +34,16 @@ class PreReleaseCommand extends Command
         $originRepo = 'git@github.com:vdubyna/check-git-commands.git';
         $originRepoNamespace = 'origin';
         $releaseBranch = 'master';
+
+
+        // Reset to release branch origin/master
+        // clenup branch
+        // make pre-release branch
+        // detect branches to release
+        // merge branches to release
+        // make pre-release tag and branch
+        // push pre-release tag and branch
+        // verify pre-relelase branches and remove old ones.
 
 
 
