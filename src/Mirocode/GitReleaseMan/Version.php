@@ -23,6 +23,7 @@ final class Version
     public $patch;
     public $stability;
     public $metaver;
+    public $extraData;
     public $full;
     /**
      * Stability indexes, higher means more stable.
@@ -30,7 +31,7 @@ final class Version
      * @var int[]
      */
     private static $stabilises = ['alpha' => 0, 'beta' => 1, 'rc' => 2, 'stable' => 3];
-    private function __construct($major, $minor, $patch, $stability, $metaver = 0)
+    private function __construct($major, $minor, $patch, $stability, $metaver = 0, $extraData = '')
     {
         // A 0 major release is always
         if (0 === (int) $major) {
@@ -42,17 +43,19 @@ final class Version
         $this->patch = (int) $patch;
         $this->stability = $stability;
         $this->metaver = (int) $metaver;
+        $this->extraData = (string) $extraData;
         if (3 === $stability && $this->metaver > 0) {
             throw new \InvalidArgumentException('Meta version of the stability flag cannot be set for stable.');
         }
         if ($major > 0 && $stability < 3) {
             $this->full = sprintf(
-                '%d.%d.%d-%s%d',
+                '%d.%d.%d-%s%d%s',
                 $this->major,
                 $this->minor,
                 $this->patch,
                 strtoupper(array_search($this->stability, self::$stabilises, true)),
-                $this->metaver
+                $this->metaver,
+                $this->extraData
             );
         } else {
             $this->full = sprintf('%d.%d.%d', $this->major, $this->minor, $this->patch);
@@ -164,7 +167,7 @@ final class Version
             case 'alpha':
             case 'beta':
             case 'rc':
-                return $this->increaseMetaver($stability);
+                return $this->increaseMetaver($stability, date('Y-m-d.h-i-s'));
             case 'stable':
                 return $this->increaseStable();
             default:
@@ -176,15 +179,15 @@ final class Version
                 );
         }
     }
-    private function increaseMetaver($stability)
+    private function increaseMetaver($stability, $extraData = '')
     {
         if ($this->stability === self::$stabilises[$stability]) {
-            return new self($this->major, $this->minor, 0, $this->stability, $this->metaver + 1);
+            return new self($this->major, $this->minor, 0, $this->stability, $this->metaver + 1, $extraData);
         }
         if (self::$stabilises[$stability] > $this->stability) {
-            return new self($this->major, $this->minor, 0, self::$stabilises[$stability], 1);
+            return new self($this->major, $this->minor, 0, self::$stabilises[$stability], 1, $extraData);
         }
-        return new self($this->major, $this->minor + 1, 0, self::$stabilises[$stability], 1);
+        return new self($this->major, $this->minor + 1, 0, self::$stabilises[$stability], 1, $extraData);
     }
     private function increaseStable()
     {
