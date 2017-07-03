@@ -18,7 +18,6 @@ use Mirocode\GitReleaseMan\AbstractCommand;
 class ReleaseCommand extends AbstractCommand
 {
 
-
     protected function configure()
     {
         $this
@@ -48,12 +47,11 @@ class ReleaseCommand extends AbstractCommand
             return;
         }
 
-
         try {
             // get repository info
             $remoteRepos = explode(PHP_EOL, $this->_executeShellCommand("git remote"));
             $remoteRepos = array_filter($remoteRepos, 'strlen');
-            if (array_search($originRepoNamespace, $remoteRepos)) {
+            if (array_search($originRepoNamespace, $remoteRepos) !== false) {
                 $this->_executeShellCommand("git remote rm {$originRepoNamespace}");
             }
             $this->_executeShellCommand("git remote add {$originRepoNamespace} {$originRepoUrl}");
