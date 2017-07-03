@@ -50,7 +50,7 @@ class ReleaseCommand extends AbstractCommand
 
         // get repository info
         try {
-            $this->_executeShellCommand("git remote add {$originRepoNamespace} {$originRepo}");
+            $this->_executeShellCommand("git remote add -f {$originRepoNamespace} {$originRepo}");
             $this->_executeShellCommand("git fetch --progress {$originRepoNamespace}");
             $this->_executeShellCommand("git log -n1 --pretty=format:%H%x20%s");
             $this->_executeShellCommand("git config remote.{$originRepoNamespace}.url");
