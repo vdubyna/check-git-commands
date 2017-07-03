@@ -48,9 +48,15 @@ class ReleaseCommand extends AbstractCommand
             return;
         }
 
-        // get repository info
+
         try {
-            $this->_executeShellCommand("git remote add -f {$originRepoNamespace} {$originRepo}");
+            // get repository info
+            $remoteRepos = explode(PHP_EOL, $this->_executeShellCommand("git remote"));
+            $remoteRepos = array_filter($remoteRepos, 'strlen');
+            if (array_search($originRepo, $remoteRepos)) {
+                $this->_executeShellCommand("git remote rm {$originRepoNamespace}");
+            }
+            $this->_executeShellCommand("git remote add {$originRepoNamespace} {$originRepo}");
             $this->_executeShellCommand("git fetch --progress {$originRepoNamespace}");
             $this->_executeShellCommand("git log -n1 --pretty=format:%H%x20%s");
             $this->_executeShellCommand("git config remote.{$originRepoNamespace}.url");
