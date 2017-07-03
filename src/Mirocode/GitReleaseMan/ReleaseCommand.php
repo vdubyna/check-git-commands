@@ -37,47 +37,12 @@ class ReleaseCommand extends AbstractCommand
         $originRepoUrl = 'git@github.com:vdubyna/check-git-commands.git';
         $originRepoNamespace = 'origin';
         $releaseBranch = 'master';
-
-        // Warn, the action will reset current repository to release branch if not - stop the process
-        $question = new ConfirmationQuestion(
-            'Confirm to reset the repository to release branch and clean it? (y/n): ', false);
-
-        if (!$this->getHelper('question')->ask($input, $output, $question)) {
-            $output->write('Stop the release process and exit.' . PHP_EOL);
-            return;
-        }
+        $versionType = 'minor';
 
         try {
-            // get repository info
-            $remoteRepos = explode(PHP_EOL, $this->_executeShellCommand("git remote"));
-            $remoteRepos = array_filter($remoteRepos, 'strlen');
-            if (array_search($originRepoNamespace, $remoteRepos) !== false) {
-                $this->_executeShellCommand("git remote rm {$originRepoNamespace}");
-            }
-            $this->_executeShellCommand("git remote add {$originRepoNamespace} {$originRepoUrl}");
-            $this->_executeShellCommand("git fetch --progress {$originRepoNamespace}");
-            $this->_executeShellCommand("git log -n1 --pretty=format:%H%x20%s");
-            $this->_executeShellCommand("git config remote.{$originRepoNamespace}.url");
-        } catch (ProcessFailedException $e) {
+            $this->prepareRepository($input, $output, $originRepoNamespace, $originRepoUrl, $releaseBranch);
+        } catch (ExitException $e) {
             $output->write($e->getMessage());
-            $output->write('Stop the release process and exit.' . PHP_EOL);
-            return;
-        }
-
-        // ask to continue and prepare for release
-        $question = new ConfirmationQuestion('Do you want to continue? (y/n): ', false);
-        if (!$this->getHelper('question')->ask($input, $output, $question)) {
-            $output->write('Stop the release process and exit.' . PHP_EOL);
-            return;
-        }
-
-        try {
-            $this->_executeShellCommand("git fetch {$originRepoNamespace}");
-            $this->_executeShellCommand("git reset --hard {$originRepoNamespace}/{$releaseBranch}");
-            $this->_executeShellCommand("git clean -fd");
-        } catch (ProcessFailedException $e) {
-            $output->write($e->getMessage());
-            $output->write('Stop the release process and exit.' . PHP_EOL);
             return;
         }
 
@@ -91,7 +56,7 @@ class ReleaseCommand extends AbstractCommand
             return;
         }
 
-        $nextVersion = Version::fromString($this->_getHighestVersion())->increase('beta');
+        $nextVersion = Version::fromString($this->_getHighestVersion())->increase($versionType);
         $nextVersion = 'v' . $nextVersion;
 
         try {
