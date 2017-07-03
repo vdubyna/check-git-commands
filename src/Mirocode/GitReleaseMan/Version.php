@@ -55,7 +55,7 @@ final class Version
                 $this->patch,
                 strtoupper(array_search($this->stability, self::$stabilises, true)),
                 $this->metaver,
-                $this->extraData
+                '+' . $this->extraData
             );
         } else {
             $this->full = sprintf('%d.%d.%d', $this->major, $this->minor, $this->patch);
