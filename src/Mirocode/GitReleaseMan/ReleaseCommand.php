@@ -43,10 +43,10 @@ class ReleaseCommand extends AbstractCommand
         $question = new ConfirmationQuestion(
             'Confirm to reset the repository to release branch and clean it? (y/n): ', false);
 
-        //if (!$this->getHelper('question')->ask($input, $output, $question)) {
-        //    $output->write('Stop the release process and exit.' . PHP_EOL);
-        //    return;
-        //}
+        if (!$this->getHelper('question')->ask($input, $output, $question)) {
+            $output->write('Stop the release process and exit.' . PHP_EOL);
+            return;
+        }
 
 
         try {
