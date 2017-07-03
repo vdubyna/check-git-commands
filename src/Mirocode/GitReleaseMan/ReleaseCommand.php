@@ -35,7 +35,7 @@ class ReleaseCommand extends AbstractCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $originRepo = 'git@github.com:vdubyna/check-git-commands.git';
+        $originRepoUrl = 'git@github.com:vdubyna/check-git-commands.git';
         $originRepoNamespace = 'origin';
         $releaseBranch = 'master';
 
@@ -43,20 +43,20 @@ class ReleaseCommand extends AbstractCommand
         $question = new ConfirmationQuestion(
             'Confirm to reset the repository to release branch and clean it? (y/n): ', false);
 
-        if (!$this->getHelper('question')->ask($input, $output, $question)) {
-            $output->write('Stop the release process and exit.' . PHP_EOL);
-            return;
-        }
+        //if (!$this->getHelper('question')->ask($input, $output, $question)) {
+        //    $output->write('Stop the release process and exit.' . PHP_EOL);
+        //    return;
+        //}
 
 
         try {
             // get repository info
             $remoteRepos = explode(PHP_EOL, $this->_executeShellCommand("git remote"));
             $remoteRepos = array_filter($remoteRepos, 'strlen');
-            if (array_search($originRepo, $remoteRepos)) {
+            if (array_search($originRepoNamespace, $remoteRepos)) {
                 $this->_executeShellCommand("git remote rm {$originRepoNamespace}");
             }
-            $this->_executeShellCommand("git remote add {$originRepoNamespace} {$originRepo}");
+            $this->_executeShellCommand("git remote add {$originRepoNamespace} {$originRepoUrl}");
             $this->_executeShellCommand("git fetch --progress {$originRepoNamespace}");
             $this->_executeShellCommand("git log -n1 --pretty=format:%H%x20%s");
             $this->_executeShellCommand("git config remote.{$originRepoNamespace}.url");
