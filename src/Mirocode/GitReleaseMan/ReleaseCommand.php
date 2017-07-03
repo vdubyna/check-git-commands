@@ -15,6 +15,7 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use Composer\Semver\Semver;
+use Mirocode\GitReleaseMan\Version;
 
 class ReleaseCommand extends Command
 {
@@ -51,9 +52,10 @@ class ReleaseCommand extends Command
 
         // get repository info
         try {
-            $this->_executeShellCommand('git fetch --progress origin', $output);
-            $this->_executeShellCommand('git log -n1 --pretty=format:%H%x20%s', $output);
-            $this->_executeShellCommand('git config remote.origin.url', $output);
+            $this->_executeShellCommand("git remote add {$originRepoNamespace} {$originRepo}");
+            $this->_executeShellCommand("git fetch --progress {$originRepoNamespace}");
+            $this->_executeShellCommand("git log -n1 --pretty=format:%H%x20%s");
+            $this->_executeShellCommand("git config remote.{$originRepoNamespace}.url");
         } catch (ProcessFailedException $e) {
             $output->write($e->getMessage());
             $output->write('Stop the release process and exit.' . PHP_EOL);
@@ -68,9 +70,9 @@ class ReleaseCommand extends Command
         }
 
         try {
-            $this->_executeShellCommand('git fetch origin', $output);
-            $this->_executeShellCommand('git reset --hard origin/master', $output);
-            $this->_executeShellCommand('git clean -fd', $output);
+            $this->_executeShellCommand("git fetch {$originRepoNamespace}");
+            $this->_executeShellCommand("git reset --hard {$originRepoNamespace}/{$releaseBranch}");
+            $this->_executeShellCommand("git clean -fd");
         } catch (ProcessFailedException $e) {
             $output->write($e->getMessage());
             $output->write('Stop the release process and exit.' . PHP_EOL);
@@ -87,33 +89,55 @@ class ReleaseCommand extends Command
             return;
         }
 
-        $versions = explode(PHP_EOL, $this->_executeShellCommand('git tag -l', $output));
-        print_r($versions);
-        Semver::sort($versions);
+        $nextVersion = Version::fromString($this->_getHighestVersion())->increase('beta');
+        $nextVersion = 'v' . $nextVersion;
 
-        //$client = new \Github\Client();
-        //$client->authenticate('16991e61d491933ead32fd870ac11df9f5d797ee', null, \Github\Client::AUTH_URL_TOKEN);
-        ////$issues = $client->api('issue')->find('PaxLabs', 'ecomm-b2b-pax', 'open', 'IN-BETA');
-        //$issues = $client->api('issue')->all('PaxLabs', 'ecomm-b2b-pax', array('state' => 'open', 'labels' => 'IN-BETA'));
-        //
-        //foreach ($issues as $issue) {
-        //    echo $issue['title'] . PHP_EOL;
-        //}
+        try {
+            $this->_executeShellCommand("git tag {$nextVersion}");
+            $this->_executeShellCommand("git push {$originRepoNamespace} {$nextVersion}");
+            $output->write('New version ' . $nextVersion . ' was released' . PHP_EOL);
+        } catch (ProcessFailedException $e) {
+            $output->write($e->getMessage());
+            $output->write('Stop the release process and exit.' . PHP_EOL);
+            return;
+        }
     }
 
     /**
      *
      * @param                 $cmd
-     * @param OutputInterface $output
      *
      * @return string
      */
-    protected function _executeShellCommand($cmd, OutputInterface $output)
+    protected function _executeShellCommand($cmd)
     {
         $process = new Process($cmd);
         $process->mustRun();
-        $output->write($process->getOutput());
 
         return $process->getOutput();
+    }
+
+    /**
+     * @return array
+     */
+    protected function _getSortedVersionsArray()
+    {
+        $versions = explode(PHP_EOL, $this->_executeShellCommand("git tag -l"));
+        $versions = array_filter($versions, 'strlen');
+        $versions = Semver::sort($versions);
+
+        return $versions;
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function _getHighestVersion()
+    {
+        $versions = $this->_getSortedVersionsArray();
+
+        $version = end($versions);
+
+        return $version;
     }
 }
