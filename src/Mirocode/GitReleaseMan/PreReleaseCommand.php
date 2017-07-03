@@ -50,7 +50,8 @@ class PreReleaseCommand extends AbstractCommand
             $nextVersion = Version::fromString($this->_getHighestVersion())->increase($versionType);
             $this->_executeShellCommand("git checkout -b {$nextVersion}");
         } catch (ProcessFailedException $e) {
-            throw new ExitException($e);
+            $output->write($e->getMessage());
+            return;
         }
 
 
