@@ -17,7 +17,8 @@ final class Version
      * * For historic reasons stability versions may have a hyphen or dot
      *   and is considered optional
      */
-    const VERSION_REGEX = '(?P<major>\d++)\.(?P<minor>\d++)(?:\.(?P<patch>\d++))?(?:[-.]?(?P<stability>beta|RC|alpha|stable)(?:[.-]?(?P<metaver>\d+))?)?';
+    const VERSION_REGEX = '(?P<major>\d++)\.(?P<minor>\d++)(?:\.(?P<patch>\d++))?(?:[-.]?(?P<stability>beta|RC|alpha|stable)(?:[.-]?(?P<metaver>\d+)))?(?:[+]?(?P<extra>.+))?';
+
     public $major;
     public $minor;
     public $patch;
@@ -73,7 +74,8 @@ final class Version
                 (int) $matches['minor'],
                 (int) ($matches['patch']) ? $matches['patch'] : 0,
                 self::$stabilises[strtolower(isset($matches['stability']) ? $matches['stability'] : 'stable')],
-                (int) (isset($matches['metaver'])) ? $matches['metaver'] : 0
+                (int) (isset($matches['metaver'])) ? $matches['metaver'] : 0,
+                (isset($matches['extra'])) ? $matches['extra'] : ''
             );
         }
         // Check for 0.x-stable (really?? who does this...)

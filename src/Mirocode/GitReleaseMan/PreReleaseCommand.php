@@ -33,14 +33,14 @@ class PreReleaseCommand extends AbstractCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $originRepoUrl = 'git@github.com:vdubyna/check-git-commands.git';
-        $originRepoNamespace = 'origin';
+        $repoNamespace = 'origin';
         $releaseBranch = 'master';
         $versionType = 'rc';
 
         // Reset to release branch origin/master
         // clenup branch
         try {
-            $this->prepareRepository($input, $output, $originRepoNamespace, $originRepoUrl, $releaseBranch);
+            $this->prepareRepository($input, $output, $repoNamespace, $originRepoUrl, $releaseBranch);
         } catch (ExitException $e) {
             $output->write($e->getMessage());
             return;
@@ -49,6 +49,8 @@ class PreReleaseCommand extends AbstractCommand
         try {
             $nextVersion = Version::fromString($this->_getHighestVersion())->increase($versionType);
             $this->_executeShellCommand("git checkout -b {$nextVersion}");
+            $this->_executeShellCommand("git tag {$nextVersion}");
+            $this->_executeShellCommand("git push {$repoNamespace} {$nextVersion}");
         } catch (ProcessFailedException $e) {
             $output->write($e->getMessage());
             return;

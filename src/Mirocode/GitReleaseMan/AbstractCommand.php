@@ -74,7 +74,6 @@ class AbstractCommand extends Command
         $originRepoUrl,
         $releaseBranch
     ) {
-// Warn, the action will reset current repository to release branch if not - stop the process
         $question = new ConfirmationQuestion(
             'Confirm to reset the repository to release branch and clean it? (y/n): ', false);
 
