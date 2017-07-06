@@ -66,6 +66,20 @@ final class Version
     {
         return $this->full;
     }
+
+    public function addExtraData($extraData)
+    {
+        $this->extraData = $extraData;
+        $this->full = "{$this->full}+{$this->extraData}";
+    }
+
+    public function getVersionWithoutExtraData()
+    {
+        $version = explode('+', $this->__toString());
+        return $version[0];
+    }
+
+
     public static function fromString($version)
     {
         if (preg_match('/^v?'.self::VERSION_REGEX.'$/i', $version, $matches)) {
@@ -140,6 +154,7 @@ final class Version
     {
         return $this->full === $second->full;
     }
+
     /**
      * Returns the increased Version based on the stability.
      *
@@ -149,9 +164,11 @@ final class Version
      *
      * @param string $stability Eg. alpha, beta, rc, stable, major, minor, patch
      *
+     * @param string $extraData
+     *
      * @return Version A new version instance with the changes applied
      */
-    public function increase($stability)
+    public function increase($stability, $extraData = '')
     {
         switch ($stability) {
             case 'patch':
@@ -169,7 +186,7 @@ final class Version
             case 'alpha':
             case 'beta':
             case 'rc':
-                return $this->increaseMetaver($stability, date('Y-m-d.h-i-s'));
+                return $this->increaseMetaver($stability, $extraData);
             case 'stable':
                 return $this->increaseStable();
             default:

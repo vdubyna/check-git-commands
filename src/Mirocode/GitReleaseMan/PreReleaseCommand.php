@@ -47,8 +47,10 @@ class PreReleaseCommand extends AbstractCommand
         }
 
         try {
-            $nextVersion = Version::fromString($this->_getHighestVersion())->increase($versionType);
-            $this->_executeShellCommand("git checkout -b {$nextVersion}");
+            $dateMark = date('Y-m-d.h-i-s');
+            $nextVersion = Version::fromString($this->_getHighestVersion())->increase($versionType, $dateMark);
+
+            $this->_executeShellCommand("git checkout -b {$nextVersion->getVersionWithoutExtraData()}");
             $this->_executeShellCommand("git tag {$nextVersion}");
             $this->_executeShellCommand("git push {$repoNamespace} {$nextVersion}");
         } catch (ProcessFailedException $e) {
