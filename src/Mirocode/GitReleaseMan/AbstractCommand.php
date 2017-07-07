@@ -75,7 +75,7 @@ class AbstractCommand extends Command
         $baseBranch
     ) {
         $question = new ConfirmationQuestion(
-            'Confirm to reset the repository to release branch and clean it? (y/n): ', false);
+            "Confirm to reset the repository to base branch {$baseBranch} tracked from {$originRepoUrl} and clean it? (y/n): ", false);
 
         if (!$this->getHelper('question')->ask($input, $output, $question)) {
             throw new ExitException('Stop the release process and exit.' . PHP_EOL);
