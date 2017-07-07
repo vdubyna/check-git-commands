@@ -97,12 +97,10 @@ class AbstractCommand extends Command
             $output->write($configRemoteValue , PHP_EOL);
             // Check if baseBranch exists on remote repository.
             $isBranchExists = $this->_executeShellCommand("git ls-remote --heads {$originRepoUrl} {$baseBranch} | wc -l");
-            if ($isBranchExists) {
+            if (empty(trim($isBranchExists))) {
                 throw new ExitException("Base branch {$baseBranch} does not exists on remote repository. " .
                     "Please, create it before usage.");
             }
-
-            $statusResult = $this->_executeShellCommand("git status");
         } catch (ProcessFailedException $e) {
             $output->write($e->getMessage());
             throw new ExitException($e);
