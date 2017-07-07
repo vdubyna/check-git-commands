@@ -126,6 +126,7 @@ class AbstractCommand extends Command
 
         try {
             $this->_executeShellCommand("git fetch {$originRepoNamespace}");
+            $this->_executeShellCommand("git checkout {$baseBranch} {$originRepoNamespace}/{$baseBranch}");
             $this->_executeShellCommand("git reset --hard {$originRepoNamespace}/{$baseBranch}");
             $this->_executeShellCommand("git clean -fd");
         } catch (ProcessFailedException $e) {
