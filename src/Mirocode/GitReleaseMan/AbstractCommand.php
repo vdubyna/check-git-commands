@@ -62,7 +62,7 @@ class AbstractCommand extends Command
      * @param OutputInterface $output
      * @param                 $originRepoNamespace
      * @param                 $originRepoUrl
-     * @param                 $releaseBranch
+     * @param                 $baseBranch
      *
      * @return void
      * @throws ExitException
@@ -72,7 +72,7 @@ class AbstractCommand extends Command
         OutputInterface $output,
         $originRepoNamespace,
         $originRepoUrl,
-        $releaseBranch
+        $baseBranch
     ) {
         $question = new ConfirmationQuestion(
             'Confirm to reset the repository to release branch and clean it? (y/n): ', false);
@@ -90,24 +90,27 @@ class AbstractCommand extends Command
             }
             $this->_executeShellCommand("git remote add {$originRepoNamespace} {$originRepoUrl}");
             $this->_executeShellCommand("git fetch --progress {$originRepoNamespace}");
-            $this->_executeShellCommand("git log -n1 --pretty=format:%H%x20%s");
-            $this->_executeShellCommand("git config remote.{$originRepoNamespace}.url");
+            $lastComments = $this->_executeShellCommand("git log -n1 --pretty=format:%H%x20%s");
+            $output->write($lastComments . PHP_EOL);
+            $configRemoteValue = $this->_executeShellCommand("git config remote.{$originRepoNamespace}.url");
+            $output->write($configRemoteValue , PHP_EOL);
         } catch (ProcessFailedException $e) {
             throw new ExitException($e);
         }
 
         // ask to continue and prepare for release
-        $question = new ConfirmationQuestion('Do you want to continue? (y/n): ', false);
+        $question = new ConfirmationQuestion("Do you want to continue and switch the branch to {$baseBranch} " .
+            "all changes will be reverted and new files/directories deleted except the ignored? (y/n): ", false);
         if (!$this->getHelper('question')->ask($input, $output, $question)) {
-            throw new ExitException('Stop the release process and exit.' . PHP_EOL);
+            throw new ExitException('Stop process and exit.' . PHP_EOL);
         }
 
         try {
             $this->_executeShellCommand("git fetch {$originRepoNamespace}");
-            $this->_executeShellCommand("git reset --hard {$originRepoNamespace}/{$releaseBranch}");
+            $this->_executeShellCommand("git reset --hard {$originRepoNamespace}/{$baseBranch}");
             $this->_executeShellCommand("git clean -fd");
         } catch (ProcessFailedException $e) {
-            throw new ExitException('Stop the release process and exit.' . PHP_EOL);
+            throw new ExitException('Stop the process and exit.' . PHP_EOL);
         }
     }
 }

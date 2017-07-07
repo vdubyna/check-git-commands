@@ -16,7 +16,7 @@ use Mirocode\GitReleaseMan\AbstractCommand;
 use Symfony\Component\Yaml\Exception\ParseException;
 
 
-class PreReleaseCommand extends AbstractCommand
+class PreReleaseGenerateCommand extends AbstractCommand
 {
     protected function configure()
     {

@@ -16,20 +16,20 @@ use Mirocode\GitReleaseMan\AbstractCommand;
 use Symfony\Component\Yaml\Exception\ParseException;
 
 
-class PreReleaseCommand extends AbstractCommand
+class PreReleaseDevelopmentBranchCommand extends AbstractCommand
 {
     protected function configure()
     {
         $this
             // the name of the command (the part after "bin/console")
-            ->setName('git:pre-release')
+            ->setName('git:release-branch')
 
             // the short description shown while running "php bin/console list"
             ->setDescription('Make pre-release.')
 
             // the full command description shown when running the command with
             // the "--help" option
-            ->setHelp('Make pre-release');
+            ->setHelp('Prepare branch for release');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -43,14 +43,14 @@ class PreReleaseCommand extends AbstractCommand
         $releaseBranch = 'master';
         $versionType = 'rc';
 
-
         $client = new \Github\Client();
         $client->authenticate($githubKey, null, \Github\Client::AUTH_URL_TOKEN);
         $issues = $client->api('issue')->all($githubName, $githubRepositoryName, array('state' => 'open', 'labels' => 'IN-BETA'));
 
-        foreach ($issues as $issue) {
-            echo $issue['title'] . PHP_EOL;
-        }
+        // check if current branch follows the name pattern
+        // push current branch to repository
+        // find recent pre-release branch
+        // make pull request to pre-release branch
 
         exit;
 
