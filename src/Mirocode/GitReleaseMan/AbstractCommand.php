@@ -16,6 +16,7 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use Composer\Semver\Semver;
 use Mirocode\GitReleaseMan\Version;
+use Mirocode\GitReleaseMan\ExitException;
 
 class AbstractCommand extends Command
 {
@@ -94,8 +95,24 @@ class AbstractCommand extends Command
             $output->write($lastComments . PHP_EOL);
             $configRemoteValue = $this->_executeShellCommand("git config remote.{$originRepoNamespace}.url");
             $output->write($configRemoteValue , PHP_EOL);
+            // Check if baseBranch exists on remote repository.
+            $isBranchExists = $this->_executeShellCommand("git ls-remote --heads {$originRepoUrl} {$baseBranch} | wc -l");
+            if ($isBranchExists) {
+                throw new ExitException("Base branch {$baseBranch} does not exists on remote repository. " .
+                    "Please, create it before usage.");
+            }
+
             $statusResult = $this->_executeShellCommand("git status");
         } catch (ProcessFailedException $e) {
+            $output->write($e->getMessage());
+            throw new ExitException($e);
+        }
+
+
+        try {
+            $statusResult = $this->_executeShellCommand("git status");
+        } catch (ProcessFailedException $e) {
+            $output->write($e->getMessage());
             throw new ExitException($e);
         }
 
@@ -114,6 +131,7 @@ class AbstractCommand extends Command
             $this->_executeShellCommand("git reset --hard {$originRepoNamespace}/{$baseBranch}");
             $this->_executeShellCommand("git clean -fd");
         } catch (ProcessFailedException $e) {
+            $output->write($e->getMessage());
             throw new ExitException('Stop the process and exit.' . PHP_EOL);
         }
     }

@@ -67,14 +67,14 @@ class FeatureCommand extends AbstractCommand
 
         $originRepoUrl = 'git@github.com:vdubyna/check-git-commands.git';
         $repoNamespace = 'origin';
-        $releaseBranch = 'master';
+        $baseBranch = 'development';
         $versionType = 'rc';
 
 
         // Reset to release branch origin/master
         // clenup branch
         try {
-            $this->prepareRepository($input, $output, $repoNamespace, $originRepoUrl, $releaseBranch);
+            $this->prepareRepository($input, $output, $repoNamespace, $originRepoUrl, $baseBranch);
         } catch (ExitException $e) {
             $output->write($e->getMessage());
             return;
