@@ -81,15 +81,19 @@ class FeatureCommand extends AbstractCommand
             $this->prepareRepository($input, $output, $repoNamespace, $originRepoUrl, $baseBranch);
             // TODO verify base branch >= release branch
 
-            $question = new Question('Please enter feature name. It can contain only [0-9,a-z,-,_] chars.', false);
+            $question = new Question('Please enter feature name. It can contain only [0-9,a-z,-,_] chars: ', false);
             // todo verify allowed chars
             $featureName = $this->getHelper('question')->ask($input, $output, $question);
             if (!$featureName) {
                 throw new ExitException('Stop the release process and exit.' . PHP_EOL);
             }
 
-            echo $featureName;
-
+            try {
+                $this->_executeShellCommand("git checkout -b feature-{$featureName}");
+            } catch (ProcessFailedException $e) {
+                $output->write($e->getMessage());
+                return;
+            }
         } catch (ExitException $e) {
             $output->write($e->getMessage());
             return;
