@@ -13,6 +13,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Mirocode\GitReleaseMan\Version;
 use Mirocode\GitReleaseMan\AbstractCommand;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
+use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Console\Input\InputArgument;
 use Mirocode\GitReleaseMan\ExitException;
@@ -68,6 +70,8 @@ class FeatureCommand extends AbstractCommand
         $originRepoUrl = 'git@github.com:vdubyna/check-git-commands.git';
         $repoNamespace = 'origin';
         $baseBranch = 'development';
+        $releaseBranch = 'master';
+
         $versionType = 'rc';
 
 
@@ -75,6 +79,17 @@ class FeatureCommand extends AbstractCommand
         // clenup branch
         try {
             $this->prepareRepository($input, $output, $repoNamespace, $originRepoUrl, $baseBranch);
+            // TODO verify base branch >= release branch
+
+            $question = new Question('Please enter feature name. It can contain only [0-9,a-z,-,_] chars.', false);
+            // todo verify allowed chars
+            $featureName = $this->getHelper('question')->ask($input, $output, $question);
+            if (!$featureName) {
+                throw new ExitException('Stop the release process and exit.' . PHP_EOL);
+            }
+
+            echo $featureName;
+
         } catch (ExitException $e) {
             $output->write($e->getMessage());
             return;
