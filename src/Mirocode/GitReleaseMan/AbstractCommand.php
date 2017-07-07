@@ -94,13 +94,17 @@ class AbstractCommand extends Command
             $output->write($lastComments . PHP_EOL);
             $configRemoteValue = $this->_executeShellCommand("git config remote.{$originRepoNamespace}.url");
             $output->write($configRemoteValue , PHP_EOL);
+            $statusResult = $this->_executeShellCommand("git status");
         } catch (ProcessFailedException $e) {
             throw new ExitException($e);
         }
 
         // ask to continue and prepare for release
         $question = new ConfirmationQuestion("Do you want to continue and switch the branch to {$baseBranch} " .
-            "all changes will be reverted and new files/directories deleted except the ignored? (y/n): ", false);
+            "all changes will be reverted and new files/directories deleted except the ignored " .
+            "see the list of files to reset below? " .
+            PHP_EOL . "{$statusResult}" . PHP_EOL .
+            "(y/n): ", false);
         if (!$this->getHelper('question')->ask($input, $output, $question)) {
             throw new ExitException('Stop process and exit.' . PHP_EOL);
         }
