@@ -18,12 +18,14 @@ use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Console\Input\InputArgument;
 use Mirocode\GitReleaseMan\ExitException;
+use \Github\Client as GithubClient;
 
 
 class FeatureCommand extends AbstractCommand
 {
     protected $allowedActions = array(
         'start',
+        'publish',
     );
 
     protected function configure()
@@ -90,6 +92,66 @@ class FeatureCommand extends AbstractCommand
 
             try {
                 $this->_executeShellCommand("git checkout -b feature-{$featureName}");
+            } catch (ProcessFailedException $e) {
+                $output->write($e->getMessage());
+                return;
+            }
+        } catch (ExitException $e) {
+            $output->write($e->getMessage());
+            return;
+        }
+    }
+
+    public function publish(InputInterface $input, OutputInterface $output)
+    {
+        // Verify if current branch is master branch
+        // switch and prepare to master branch
+        // Create feature branch following the pattern
+
+
+        $githubName = 'vdubyna';
+        $githubRepositoryName = 'check-git-commands';
+        $githubKey = 'f06d3cab4e132907cfe874fbcfc893c9c029ba19';
+
+        $originRepoUrl = 'git@github.com:vdubyna/check-git-commands.git';
+        $repoNamespace = 'origin';
+        $baseBranch = 'development';
+        $releaseBranch = 'master';
+
+        $versionType = 'rc';
+        try {
+            //$question = new ConfirmationQuestion('Do you want to publish feature for testing?: ', false);
+            //if (!$this->getHelper('question')->ask($input, $output, $question)) {
+            //    throw new ExitException('Stop the process and exit.' . PHP_EOL);
+            //}
+            try {
+                $currentBranchName = trim($this->_executeShellCommand("git rev-parse --abbrev-ref HEAD"));
+                // TODO check if $currentBranchName is a feature
+                $this->_executeShellCommand("git push {$repoNamespace} {$currentBranchName}");
+                // Open PR if not opened and Mark it IN-BETA
+
+                $client = new GithubClient();
+                $client->authenticate($githubKey , null, GithubClient::AUTH_HTTP_TOKEN);
+                // Check if branch has pull request
+                $issues = $client->api('pull_request')
+                                 ->all($githubName, $githubRepositoryName,
+                                     array('state' => 'open', 'type' => 'pr', 'head' => "{$currentBranchName}"));
+                if (empty($issues)) {
+                    // create pull request
+                    // else push recent changes to repository
+                    // TODO compile PR description
+                    $client->api('pull_request')->create($githubName, $githubRepositoryName, array(
+                        'base'  => $baseBranch,
+                        'head'  => $currentBranchName,
+                        'title' => 'Test branch',
+                        'body'  => 'This is description for test pr.'
+                    ));
+
+                } else {
+                    $this->_executeShellCommand("git push {$repoNamespace} {$currentBranchName}");
+                }
+
+
             } catch (ProcessFailedException $e) {
                 $output->write($e->getMessage());
                 return;
