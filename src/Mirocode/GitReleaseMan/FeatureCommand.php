@@ -111,7 +111,7 @@ class FeatureCommand extends AbstractCommand
 
         $githubName = 'vdubyna';
         $githubRepositoryName = 'check-git-commands';
-        $githubKey = 'f06d3cab4e132907cfe874fbcfc893c9c029ba19';
+        $githubKey = 'e32864339f1e5e8e62d7952524cd5efc48bc6875';
 
         $originRepoUrl = 'git@github.com:vdubyna/check-git-commands.git';
         $repoNamespace = 'origin';
@@ -140,12 +140,15 @@ class FeatureCommand extends AbstractCommand
                     // create pull request
                     // else push recent changes to repository
                     // TODO compile PR description
-                    $client->api('pull_request')->create($githubName, $githubRepositoryName, array(
+                    $pr = $client->api('pull_request')->create($githubName, $githubRepositoryName, array(
                         'base'  => $baseBranch,
                         'head'  => $currentBranchName,
                         'title' => 'Test branch',
                         'body'  => 'This is description for test pr.'
                     ));
+
+                    $client->api('issue')->labels()->add($githubName, $githubRepositoryName, $pr['number'], 'bug');
+                    // TODO show success message
 
                 } else {
                     $this->_executeShellCommand("git push {$repoNamespace} {$currentBranchName}");
