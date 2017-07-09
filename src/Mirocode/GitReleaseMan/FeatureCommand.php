@@ -24,8 +24,10 @@ use \Github\Client as GithubClient;
 class FeatureCommand extends AbstractCommand
 {
     protected $allowedActions = array(
-        'start',
-        'publish',
+        'start' => 'start',
+        'publish' => 'start',
+        'pre-release' => 'preRelease',
+        'release' => 'release'
     );
 
     protected function configure()
@@ -51,7 +53,7 @@ class FeatureCommand extends AbstractCommand
 
         $action = $input->getArgument('action');
 
-        if (in_array($action, $this->allowedActions, true) && method_exists($this, $action)) {
+        if (key_exists($action, $this->allowedActions) && method_exists($this, $this->allowedActions[$action])) {
             $this->$action($input, $output);
         }
 
@@ -155,6 +157,81 @@ class FeatureCommand extends AbstractCommand
                 }
 
 
+            } catch (ProcessFailedException $e) {
+                $output->write($e->getMessage());
+                return;
+            }
+        } catch (ExitException $e) {
+            $output->write($e->getMessage());
+            return;
+        }
+    }
+
+    public function preRelease(InputInterface $input, OutputInterface $output)
+    {
+        // Verify if current branch is master branch
+        // switch and prepare to master branch
+        // Create feature branch following the pattern
+
+
+        $githubName = 'vdubyna';
+        $githubRepositoryName = 'check-git-commands';
+        $githubKey = 'e32864339f1e5e8e62d7952524cd5efc48bc6875';
+
+        $originRepoUrl = 'git@github.com:vdubyna/check-git-commands.git';
+        $repoNamespace = 'origin';
+        $baseBranch = 'development';
+        $releaseBranch = 'master';
+
+        $versionType = 'rc';
+        try {
+            //$question = new ConfirmationQuestion('Do you want to publish feature for testing?: ', false);
+            //if (!$this->getHelper('question')->ask($input, $output, $question)) {
+            //    throw new ExitException('Stop the process and exit.' . PHP_EOL);
+            //}
+            try {
+                // reset to base branch
+                // merge PR's into base branch
+                // create pre-release branch and push into repository.
+
+            } catch (ProcessFailedException $e) {
+                $output->write($e->getMessage());
+                return;
+            }
+        } catch (ExitException $e) {
+            $output->write($e->getMessage());
+            return;
+        }
+    }
+
+    public function release(InputInterface $input, OutputInterface $output)
+    {
+        // Verify if current branch is master branch
+        // switch and prepare to master branch
+        // Create feature branch following the pattern
+
+
+        $githubName = 'vdubyna';
+        $githubRepositoryName = 'check-git-commands';
+        $githubKey = 'e32864339f1e5e8e62d7952524cd5efc48bc6875';
+
+        $originRepoUrl = 'git@github.com:vdubyna/check-git-commands.git';
+        $repoNamespace = 'origin';
+        $baseBranch = 'development';
+        $releaseBranch = 'master';
+
+        $versionType = 'rc';
+        try {
+            //$question = new ConfirmationQuestion('Do you want to publish feature for testing?: ', false);
+            //if (!$this->getHelper('question')->ask($input, $output, $question)) {
+            //    throw new ExitException('Stop the process and exit.' . PHP_EOL);
+            //}
+            try {
+                // reset to base branch
+                // merge PR's ready to prod
+                // Prepare pull request
+                // merge pull request.
+                // Make a release tag
             } catch (ProcessFailedException $e) {
                 $output->write($e->getMessage());
                 return;
