@@ -11,8 +11,7 @@ namespace Mirocode\GitReleaseMan;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;
-use Mirocode\GitReleaseMan\Version;
-use Mirocode\GitReleaseMan\AbstractCommand;
+use Mirocode\GitReleaseMan\AbstractCommand as Command;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Yaml\Exception\ParseException;
@@ -21,7 +20,7 @@ use Mirocode\GitReleaseMan\ExitException;
 use \Github\Client as GithubClient;
 
 
-class FeatureCommand extends AbstractCommand
+class FeatureCommand extends Command
 {
     protected $allowedActions = array(
         'start' => 'start',
