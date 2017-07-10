@@ -15,7 +15,9 @@ use Mirocode\GitReleaseMan\AbstractCommand as Command;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Yaml\Exception\ParseException;
+use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 use Mirocode\GitReleaseMan\ExitException;
 use \Github\Client as GithubClient;
 
@@ -29,26 +31,28 @@ class FeatureCommand extends Command
         'release' => 'release'
     );
 
+    protected $configuration;
+
     protected function configure()
     {
         $this
             // the name of the command (the part after "bin/console")
+            //TODO add default config path
             ->setName('git:flow:feature')
             ->addArgument('action', InputArgument::REQUIRED, 'Action')
+            ->addOption('config', 'c', InputOption::VALUE_REQUIRED, 'Path to config file', '.git-release-man.yml')
             ->setDescription('Make pre-release.')
             ->setHelp('Make pre-release');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $githubName = 'vdubyna';
-        $githubRepositoryName = 'check-git-commands';
-        $githubKey = '8c63b2b0c8c082b6dcbd9c04acd86e11613b61b6';
-
-        $originRepoUrl = 'git@github.com:vdubyna/check-git-commands.git';
-        $repoNamespace = 'origin';
-        $releaseBranch = 'master';
-        $versionType = 'rc';
+        try {
+            $configFilePath = $input->getOption('config');
+            $this->configuration = Yaml::parse(file_get_contents($configFilePath));
+        } catch (ParseException $e) {
+            throw new ExitException("Unable to parse the YAML string: %s", $e->getMessage());
+        }
 
         $action = $input->getArgument('action');
 
@@ -61,25 +65,10 @@ class FeatureCommand extends Command
 
     public function start(InputInterface $input, OutputInterface $output)
     {
-        // Verify if current branch is master branch
-        // switch and prepare to master branch
-        // Create feature branch following the pattern
+        $originRepoUrl = $this->configuration->github->url;
+        $repoNamespace = $this->configuration->github->namespace;
+        $baseBranch    = $this->configuration->feature->start->baseBranch;
 
-
-        $githubName = 'vdubyna';
-        $githubRepositoryName = 'check-git-commands';
-        $githubKey = '8c63b2b0c8c082b6dcbd9c04acd86e11613b61b6';
-
-        $originRepoUrl = 'git@github.com:vdubyna/check-git-commands.git';
-        $repoNamespace = 'origin';
-        $baseBranch = 'development';
-        $releaseBranch = 'master';
-
-        $versionType = 'rc';
-
-
-        // Reset to release branch origin/master
-        // clenup branch
         try {
             $this->prepareRepository($input, $output, $repoNamespace, $originRepoUrl, $baseBranch);
             // TODO verify base branch >= release branch
@@ -109,22 +98,19 @@ class FeatureCommand extends Command
         // switch and prepare to master branch
         // Create feature branch following the pattern
 
+        $githubName           = $this->configuration->github->username;
+        $githubRepositoryName = $this->configuration->github->repository->name;
+        $githubKey            = $this->configuration->github->token;
+        $repoNamespace        = $this->configuration->github->namespace;
 
-        $githubName = 'vdubyna';
-        $githubRepositoryName = 'check-git-commands';
-        $githubKey = 'e32864339f1e5e8e62d7952524cd5efc48bc6875';
+        $baseBranch           = $this->configuration->feature->publish->baseBranch;
+        $prereleaseLabel      = $this->configuration->feature->publish->reservedLabel;
 
-        $originRepoUrl = 'git@github.com:vdubyna/check-git-commands.git';
-        $repoNamespace = 'origin';
-        $baseBranch = 'development';
-        $releaseBranch = 'master';
-
-        $versionType = 'rc';
         try {
-            //$question = new ConfirmationQuestion('Do you want to publish feature for testing?: ', false);
-            //if (!$this->getHelper('question')->ask($input, $output, $question)) {
-            //    throw new ExitException('Stop the process and exit.' . PHP_EOL);
-            //}
+            $question = new ConfirmationQuestion('Do you want to publish feature for testing?: ', false);
+            if (!$this->getHelper('question')->ask($input, $output, $question)) {
+                throw new ExitException('Stop the process and exit.' . PHP_EOL);
+            }
             try {
                 $currentBranchName = trim($this->_executeShellCommand("git rev-parse --abbrev-ref HEAD"));
                 // TODO check if $currentBranchName is a feature
@@ -148,7 +134,10 @@ class FeatureCommand extends Command
                         'body'  => 'This is description for test pr.'
                     ));
 
-                    $client->api('issue')->labels()->add($githubName, $githubRepositoryName, $pr['number'], 'bug');
+                    $client->api('issue')->labels()->add($githubName,
+                        $githubRepositoryName,
+                        $pr['number'],
+                        $prereleaseLabel);
                     // TODO show success message
 
                 } else {
@@ -172,22 +161,19 @@ class FeatureCommand extends Command
         // switch and prepare to master branch
         // Create feature branch following the pattern
 
+        $githubName           = $this->configuration->github->username;
+        $githubRepositoryName = $this->configuration->github->repository->name;
+        $githubKey            = $this->configuration->github->token;
+        $repoNamespace        = $this->configuration->github->namespace;
 
-        $githubName = 'vdubyna';
-        $githubRepositoryName = 'check-git-commands';
-        $githubKey = 'e32864339f1e5e8e62d7952524cd5efc48bc6875';
+        $baseBranch           = $this->configuration->feature->publish->baseBranch;
+        $prereleaseLabel      = $this->configuration->feature->publish->reservedLabel;
 
-        $originRepoUrl = 'git@github.com:vdubyna/check-git-commands.git';
-        $repoNamespace = 'origin';
-        $baseBranch = 'development';
-        $releaseBranch = 'master';
-
-        $versionType = 'rc';
         try {
-            //$question = new ConfirmationQuestion('Do you want to publish feature for testing?: ', false);
-            //if (!$this->getHelper('question')->ask($input, $output, $question)) {
-            //    throw new ExitException('Stop the process and exit.' . PHP_EOL);
-            //}
+            $question = new ConfirmationQuestion('Do you want to publish feature for testing?: ', false);
+            if (!$this->getHelper('question')->ask($input, $output, $question)) {
+                throw new ExitException('Stop the process and exit.' . PHP_EOL);
+            }
             try {
                 // reset to base branch
                 // merge PR's into base branch
@@ -208,23 +194,19 @@ class FeatureCommand extends Command
         // Verify if current branch is master branch
         // switch and prepare to master branch
         // Create feature branch following the pattern
+        $githubName           = $this->configuration->github->username;
+        $githubRepositoryName = $this->configuration->github->repository->name;
+        $githubKey            = $this->configuration->github->token;
+        $repoNamespace        = $this->configuration->github->namespace;
 
+        $baseBranch           = $this->configuration->feature->publish->baseBranch;
+        $prereleaseLabel      = $this->configuration->feature->publish->reservedLabel;
 
-        $githubName = 'vdubyna';
-        $githubRepositoryName = 'check-git-commands';
-        $githubKey = 'e32864339f1e5e8e62d7952524cd5efc48bc6875';
-
-        $originRepoUrl = 'git@github.com:vdubyna/check-git-commands.git';
-        $repoNamespace = 'origin';
-        $baseBranch = 'development';
-        $releaseBranch = 'master';
-
-        $versionType = 'rc';
         try {
-            //$question = new ConfirmationQuestion('Do you want to publish feature for testing?: ', false);
-            //if (!$this->getHelper('question')->ask($input, $output, $question)) {
-            //    throw new ExitException('Stop the process and exit.' . PHP_EOL);
-            //}
+            $question = new ConfirmationQuestion('Do you want to publish feature for testing?: ', false);
+            if (!$this->getHelper('question')->ask($input, $output, $question)) {
+                throw new ExitException('Stop the process and exit.' . PHP_EOL);
+            }
             try {
                 // reset to base branch
                 // merge PR's ready to prod

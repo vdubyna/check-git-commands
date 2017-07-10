@@ -1,0 +1,18 @@
+github:
+ username: "vdubyna"
+ repository:
+    name: "check-git-commands"
+    url: "git@github.com:vdubyna/check-git-commands.git"
+    namespace: "origin"
+ token: "8c63b2b0c8c082b6dcbd9c04acd86e11613b61b6"
+feature:
+  start:
+    baseBranch: "master"
+  publish:
+    baseBranch: "master"
+    reservedLabel: "IN-BETA"
+  preRelease:
+    baseBranch: "master"
+    type: "RC"
+    reservedLabel: "IN-BETA"
+  release:
